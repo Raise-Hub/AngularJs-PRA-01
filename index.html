@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<!-- Diretiva são extenções da linguagem HTML que permitem a implementação de novos comportamentos, de forma declarativa. -->
+<html ng-app="locadora"><!-- ngApp Declara um elemento como o elemento raiz da aplicação, ocasionando a mudança do comportamento padrão da tag. -->
+<head>
+	<title>Locadora de Filmes</title>
+	<style>
+		.jumbotron {
+			width: 900px;
+			text-align: center;
+			margin-top: 20px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		h3{
+			margin-bottom: 30px;
+		}
+		.itens{
+			text-align: justify;
+		}
+		.table{
+			margin-top: 20px;
+		}
+		.form-control{
+			margin-bottom: 5px;
+		}
+		.selecionado{
+			background-color: rgb(161, 201, 185);
+		}
+		.negrito{
+			font-weight: bold;
+		}
+		hr {
+			border-color: rgb(255, 0, 0)
+		}
+	</style>
+	<link rel="stylesheet" type="text/css" href="./lib/bootstrap/css/bootstrap.css">
+	<script src="./lib/angularjs/angular.js"></script>
+	<script src="./lib/angularjs/i18n/angular-locale_pt-br.js"></script>
+	<script src="./lib/angularjs/angular-messages.js"></script>
+	<script>
+		angular.module("locadora", ["ngMessages"]);/* Criando o module para adicionar no ngApp ("locadora", []) */
+		angular.module("locadora").controller("locadoraCtrl", function ($scope) {
+			$scope.app = "Locadora de Filme";
+			$scope.filmes = [
+				{codigo: "1", nome: "Harry Potter e a Pedra Filosofal", data: new Date(),  preco: 20},
+				{codigo: "2", nome: "Harry Potter e a Camara Secreta", data: new Date(),  preco: 20},
+				{codigo: "3", nome: "Harry Potter e o Calice de Fogo" , data: new Date(),  preco: 20},
+				{codigo: "4", nome: "Harry Potter e o Prisioneiro de Askaban", data: new Date(),  preco: 20},
+				{codigo: "5", nome: "Harry Potter e a Ordem da Fenix", data: new Date(),  preco: 30}
+			];
+			$scope.tiposDeFilme = [
+				{type: "Aventura"},
+				{type: "Terror"},
+				{type: "Fictício"},
+				{type: "Drama"},
+				{type: "Comédia"},
+				{type: "Ação"},
+				{type: "Fantasía"},
+				{type: "Mistério"}
+			];
+			$scope.categorias = [
+				{cat: "+18"},
+				{cat: "+10"},
+				{cat: "+12"},
+				{cat: "+14"},
+				{cat: "+16"}
+			];
+			$scope.addFilme = function (filme) {
+				$scope.filmes.push(angular.copy(filme));
+				delete $scope.filme;
+				$scope.filmeForm.$setPristine();
+			};
+			$scope.apagarFilmes = function (filmes) {
+				$scope.filmes = filmes.filter(function (filme) {
+					if (!filme.selecionado) return filme;
+				})
+			};
+			$scope.isFilmesSelecionados = function (filmes) {
+				return filmes.some(function (filme) {
+					return filme.selecionado;
+				});
+			}
+			$scope.ordenarPor = function (campo) {
+				$scope.ordenacao = campo;
+				$scope.direction = !$scope.direction;
+			}
+		});
+	</script>
+</head>
+<body ng-controller="locadoraCtrl"><!-- ngController Especifica um controller JavaScript para aquele HTML em questão. -->
+	<div class="jumbotron">
+		<h4>{{app}}</h4>
+		<!-- {{filmes}} -->
+		<input class="form-control" type="text" ng-model="busca" placeholder="O que você está buscando?"/>
+		<table class="table table-striped" ng-show="filmes.length > 0">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Código</th>
+					<th><a href="" ng-click="ordenarPor('nome')">Nome</a></th>
+					<th><a href="" ng-click="ordenarPor('data')">Data</a></th>
+					<th>Preço</th>
+					<th>Tipo</th>
+					<th>Categoria</th>
+					<th></th>
+				</tr>
+				<tr class="itens" ng-class="{'selecionado negrito': filme.selecionado}" ng-repeat="filme in filmes | filter:busca | orderBy : ordenacao :direction" ><!-- ngRepeat Instancia um elemento por item de um array. -->
+					<td><input type="checkbox" ng-model="filme.selecionado"/></td>
+					<td>{{filme.codigo}}</td>
+					<td>{{filme.nome}}</td>
+					<td>{{filme.data | date:'dd/MM/yy'}}</td>
+					<td>{{filme.preco | currency}}</td>
+					<td>{{filme.types.type}}</td>
+					<td>{{filme.categoria.cat}}</td>
+				</tr>
+			</thead>
+		</table>
+		<hr/>
+		<form name="filmeForm">
+			<div class="row">				
+				<div class="col-md-4"><!-- Adicionar mascaras nos input Principalmente no input de Preço -->
+					<input class="form-control" type="text" ng-model="filme.codigo" name="codigo" placeholder="Código" ng-required="true" ng-minlength="6"/>
+				</div><!-- ngModel É similar ao ng-bind, mas permite ligação direta bidirecional (two-way data binding ) entre a view e o escopo do aplicativo. -->
+				<div class="col-md-9">
+					<input class="form-control" type="text" ng-model="filme.nome" name="nome" placeholder="Nome" ng-required="true" ng-minlength="2"/>
+				</div>
+				<div class="col-md-3">
+					<input class="form-control" type="text" ng-model="filme.preco" name="preco" placeholder="R$" ng-required="true" ng-minlength="4" />
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6"><!-- group by  No ngOptions serve para categorizar no select -->
+					<select class="form-control" ng-model="filme.types" name="select1" ng-options="types.type for types in tiposDeFilme" ng-required="true" >
+						<option value="">Selecione um tipo</option>
+					</select>
+				</div>
+				<div class="col-md-6">
+					<select class="form-control" ng-model="filme.categoria" name="select2" ng-options="categoria.cat for categoria in categorias" ng-required="true" >
+						<option value="">Selecione uma categoria</oprion>
+					</select>
+				</div>
+			</div>
+		</form>
+		<div ng-messages="filmeForm.codigo.$error" ng-show="filmeForm.codigo.$dirty">
+			<div ng-message="required" class="alert alert-danger">
+				Por favor preencha os campo "Código"!
+			</div>
+			<div ng-message="minlength" class="alert alert-danger">
+				Por favor código deve ter pelomenos 6 digitos!
+			</div>
+		</div>
+		<div ng-messages="filmeForm.nome.$error" ng-show="filmeForm.nome.$dirty">
+			<div ng-message="required" class="alert alert-danger">
+				Por favor preencha os campo "Nome"!
+			</div>
+			<div ng-message="minlength" class="alert alert-danger">
+				Por favor nome deve ter pelomenos 2 caracteres!
+			</div>
+		</div>
+		<div ng-messages="filmeForm.preco.$error" ng-show="filmeForm.preco.$dirty">
+			<div ng-message="required" class="alert alert-danger">
+				Por favor preencha os campo "R$"!
+			</div>
+			<div ng-message="minlength" class="alert alert-danger">
+			Por favor preço precisa ter pelomenos 4 digitos!
+			</div>
+		</div>
+		<div ng-messages="filmeForm.select1.$error" ng-show="filmeForm.select1.$dirty">
+			<div ng-message="required" class="alert alert-danger">
+				Por favor selecione um tipo de filme!
+			</div>
+		</div>
+		<div ng-messages="filmeForm.select2.$error" ng-show="filmeForm.select2.$dirty">
+			<div ng-message="required" class="alert alert-danger">
+				Por favor selecione uma categoria de idade!
+			</div>
+		</div>
+		<button class="btn btn-primary btn-block" ng-Click="addFilme(filme)" ng-disabled="filmeForm.$invalid">
+			Adicionar um filme
+		</button><!-- ngClick Permite instanciar o evento de click, semelhante ao onclick. -->
+		<button class="btn btn-danger btn-block" ng-click="apagarFilmes(filmes)" ng-if="isFilmesSelecionados(filmes)">
+			Apagar Filmes
+		</button>
+		
+	</div>
+</body>
+</html>
